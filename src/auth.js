@@ -14,7 +14,11 @@ async function fetchUsers(fetcher = fetch) {
   return response.json()
 }
 
-async function issueToken(username, secret = process.env.JWT_SECRET, fetcher = fetch) {
+async function issueToken(
+  username,
+  secret = process.env.JWT_SECRET,
+  fetcher = fetch,
+) {
   if (!username) {
     const error = new Error('username 입력 필요')
     error.status = 400
@@ -29,7 +33,7 @@ async function issueToken(username, secret = process.env.JWT_SECRET, fetcher = f
 
   const users = await fetchUsers(fetcher)
 
-  const user = undefined
+  const user = users.find((u) => u.username === username)
 
   if (!user) {
     const error = new Error('사용자 없음')
@@ -38,10 +42,16 @@ async function issueToken(username, secret = process.env.JWT_SECRET, fetcher = f
   }
 
   const payload = {
-
+    sub: user.id,
+    username: user.username,
+    name: user.name,
+    email: user.email,
   }
 
-  const token = ''
+  const token = jwt.sign(payload, secret, {
+    algorithm: 'HS256',
+    expiresIn: '10m',
+  })
 
   return {
     token,
